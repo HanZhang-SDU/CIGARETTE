@@ -39,7 +39,7 @@ int main(){
         std::cout << "failed to open " << filename << '\n';
         return -1;
     }
-    int DIM = 4;
+    int DIM = 9;
     double RES, ERR, CHISQ; 
     double EPS_REL = 1.0e-3;
     double EPS_ABS = 1.0e-20;

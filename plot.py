@@ -6,18 +6,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib as mpl
 from math import floor
-###########################################################################
 
 
-def div(a, b):
-    if(abs(b) < 10**(-100)):
-        result = 0.0
-    else:
-        result = a/b
-    return result
-
-
-vdiv = np.vectorize(div)
 ######################## Set Plot Parameter ##############################
 
 
@@ -43,7 +33,7 @@ prop_cycle = plt.rcParams['axes.prop_cycle']
 colors = prop_cycle.by_key()['color']
 
 
-##################### plot ytt diagram ########################
+##################### plot diagram ########################
 sample = []
 with open("data.txt") as f:
     for line in f:
