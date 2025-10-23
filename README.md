@@ -7,6 +7,9 @@ The core functionality is derived from the original CIGAR program, see https://g
 The source code for this program can be downloaded at <https://github.com/HanZhang-SDU/CIGARETTE>.
 
 ## Usage and Interfaces
+
+For compile, just make. See Makefile for mutual dependece between files.
+
 For a comprehensive guide on how to use this program, please refer to the provided example in main.cpp. The set of available interfaces and configuration options can be found in VEGAS.h.
 
 A Python script is also included to facilitate the plotting of the output figures.
