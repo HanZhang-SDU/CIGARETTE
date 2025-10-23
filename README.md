@@ -15,7 +15,7 @@ A Python script is also included to facilitate the plotting of the output figure
 - G. Peter Lepage: Adaptive Multidimensional Integration: VEGAS Enhanced; arXiv: 2009.05112;
 
 ## License
-Copyright (C) <2025>  <Han Zhang>
+Copyright (C) <2025>  Han Zhang
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
