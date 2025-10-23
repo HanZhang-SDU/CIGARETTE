@@ -4,6 +4,8 @@ This is the C++ implementation of the veGAs/veGAs+ algoRithm (CIGAR) for multi-d
 
 The core functionality is derived from the original CIGAR program, see https://github.com/ycwu1030/CIGAR. CIGARETTE extends CIGAR with the key ability to perform binning directly during the Monte Carlo sampling process. This integrated binning mechanism ensures the result produced by CIGARETTE can be used immediately for drawing differential distribution figures, eliminating the need for any additional post-processing.
 
+The source code for this program can be downloaded at <https://github.com/HanZhang-SDU/CIGARETTE>.
+
 ## Usage and Interfaces
 For a comprehensive guide on how to use this program, please refer to the provided example in main.cpp. The set of available interfaces and configuration options can be found in VEGAS.h.
 
