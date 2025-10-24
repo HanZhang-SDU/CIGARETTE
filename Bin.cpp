@@ -79,9 +79,6 @@ BIN operator/(BIN bin1, const double fac){
 
 void BIN::Swallow(const double bin_var, const double weight){
     int i;
-    if(edges.empty()){
-        return;
-    }
     if(bin_var < edges[0]){
         data_before += weight/width;
         return;

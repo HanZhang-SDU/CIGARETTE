@@ -72,7 +72,7 @@ ax.plot(x1, f(x1), linewidth = lw, label = r"$\frac{1}{a\pi^{1/2}}e^{-\frac{(x_1
 ax.set(xlim = (x[0], x[-1]))
 for ticks in ax.yaxis.get_majorticklabels():
     ticks.set_verticalalignment('baseline')
-ax.set_ylabel(r"$\frac{d I_4}{d x_1}$", loc = "top")
+ax.set_ylabel(r"$\frac{d I_9}{d x_1}$", loc = "top")
 ax.set_xlabel(r"$x_1$", loc = "right")
 ax.tick_params(direction = "in", which = "both")
 ax.tick_params(which='major', width=lw, length=30)
