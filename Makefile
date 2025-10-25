@@ -18,6 +18,11 @@ EXTENSIONSSRCS := VEGAS_map.cpp VEGAS_Stratify.cpp Bin.cpp\
 EXTENSIONSOBJS := $(patsubst %.cpp, %.o, $(EXTENSIONSSRCS))
 
 
+#c++20 standard is optional
+#CCFLAGS := -std=c++20
+#LDFLAGS := -std=c++20
+
+
 RM := rm -rf $(PROG) $(OBJ) $(EXTENSIONSOBJS)
 
 
@@ -32,14 +37,14 @@ $(PROG): $(OBJ) $(EXTENSIONSOBJS)
 
 
 $(OBJ): %.o: %.cpp
-	$(CC) -c $< $(FCFLAGS)
-
-
-$(OBJ): $(EXTENSIONSOBJS)
+	$(CC) -c $< $(CCFLAGS)
 
 
 $(EXTENSIONSOBJS): %.o:%.cpp
-	$(CC) -c $<
+	$(CC) -c $< $(CCFLAGS)
+
+
+$(OBJ): $(EXTENSIONSOBJS)
 
 
 $(EXTENSIONSOBJS): %.o:%.h
