@@ -47,7 +47,7 @@ double DIn(vector<double> x, vector<double> *pvd){
 int main(){
     int DIM = 4;
     double RES, ERR, CHISQ; 
-    double EPS_REL = 1.0e-3;
+    double EPS_REL = 1.0e-4;
     double EPS_ABS = 1.0e-20;
     VEGAS_INTEGRATOR_VERBOSE verb = INFO;
     string filename("data.txt");

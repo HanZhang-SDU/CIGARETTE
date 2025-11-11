@@ -193,7 +193,8 @@ void VEGAS_Integrator::Improve_Grid(double eps_rel)
             {
                 break;
             }
-            NEVAL_START = NEVAL_START * sqrt(acc/eps_rel);
+            //NEVAL_START = NEVAL_START * sqrt(acc/eps_rel);
+            NEVAL_START = NEVAL_START * pow(acc/eps_rel, 2);
             Results.clear();
             Sigma2.clear();
         }
@@ -294,7 +295,8 @@ void VEGAS_Integrator::Integration(double eps_rel, double eps_abs)
             }
             if (Chi2/5.0 < 1.0)
             {
-                NEVAL_START = NEVAL_START * sqrt(acc/eps_rel);
+                //NEVAL_START = NEVAL_START * sqrt(acc/eps_rel);
+                NEVAL_START = NEVAL_START * pow(acc/eps_rel, 2);
                 Results.clear();
                 Sigma2.clear();
                 continue;
@@ -426,7 +428,8 @@ void VEGAS_Integrator::Integration(double eps_rel, double eps_abs, vector<BIN> &
             }
             if (Chi2/5.0 < 1.0)
             {
-                NEVAL_START = NEVAL_START * sqrt(acc/eps_rel);
+                //NEVAL_START = NEVAL_START * sqrt(acc/eps_rel);
+                NEVAL_START = NEVAL_START * pow(acc/eps_rel, 2);
                 Results.clear();
                 Sigma2.clear();
                 for(int ib = 0; ib < vbin.size(); ib++){
