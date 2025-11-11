@@ -61,6 +61,12 @@ BIN operator*(BIN bin1, const double fac){
 }
 
 
+BIN operator*(const double fac, BIN bin1){
+    bin1 *= fac;
+    return bin1;
+}
+
+
 BIN& BIN::operator/=(const double fac){
     data_before /= fac;
     data_after /= fac;

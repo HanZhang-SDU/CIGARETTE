@@ -11,11 +11,24 @@ void VEGAS_Integrator::Set_Verbose(VEGAS_INTEGRATOR_VERBOSE level)
     verb = level;
 }
 
-void VEGAS_Integrator::Set_Integrand(INTEGRAND integrand, int dim, void* param)
+void VEGAS_Integrator::Set_Integrand(INTEGRAND integrand, int dim)
 {
     func = integrand;
+    dfunc = nullptr;
     N_DIM = dim;
-    userdata = param;
+    Results.clear();
+    Sigma2.clear();
+    map = VEGAS_Map(dim);
+    unsigned seed = chrono::system_clock::now().time_since_epoch().count();
+    rng.seed(seed);
+}
+
+
+void VEGAS_Integrator::Set_Integrand(INTEGRAND integrand, DINTEGRAND dintegrand, int dim)
+{
+    func = integrand;
+    dfunc = dintegrand;
+    N_DIM = dim;
     Results.clear();
     Sigma2.clear();
     map = VEGAS_Map(dim);
@@ -29,7 +42,6 @@ void VEGAS_Integrator::Improve_Grid(double eps_rel)
     vector<double> yrnd(N_DIM);
     vector<double> y(N_DIM); // Random number between 0 to 1;
     vector<double> x(N_DIM); // The argument for integrand;
-    VEGAS_INTEGRAND_RETURN_TYPE func_return;
     double f_eval; // evaluated integrand value;
     double Jac; 
     int iter = 0;
@@ -70,8 +82,7 @@ void VEGAS_Integrator::Improve_Grid(double eps_rel)
                 yrnd[i_dim] = dist(rng);
             }
             x = map.Get_X(yrnd);
-            func_return = func(x,userdata);
-            f_eval = func_return.real();
+            f_eval = func(x);
             Jac = map.Get_Jac(yrnd);
             if (isnan(f_eval) || isnan(Jac))
             {
@@ -134,8 +145,7 @@ void VEGAS_Integrator::Improve_Grid(double eps_rel)
                 }
                 y = strat.Get_Y(inc,yrnd);
                 x = map.Get_X(y);
-                func_return = func(x,userdata);
-                f_eval = func_return.real();
+                f_eval = func(x);
                 Jac = map.Get_Jac(y);
                 if (isnan(f_eval) || isnan(Jac))
                 {
@@ -202,7 +212,6 @@ void VEGAS_Integrator::Integration(double eps_rel, double eps_abs)
     vector<double> yrnd(N_DIM);
     vector<double> y(N_DIM); // Random number between 0 to 1;
     vector<double> x(N_DIM); // The argument for integrand;
-    VEGAS_INTEGRAND_RETURN_TYPE func_return;
     double f_eval; // evaluated integrand value;
     double Jac; // The Jacobian from y to x;
     int NEVAL_START = 50000;
@@ -246,8 +255,7 @@ void VEGAS_Integrator::Integration(double eps_rel, double eps_abs)
                 }
                 y = strat.Get_Y(inc,yrnd);
                 x = map.Get_X(y);
-                func_return = func(x,userdata);
-                f_eval = func_return.real();
+                f_eval = func(x);
                 Jac = map.Get_Jac(y);
                 if (isnan(f_eval) || isnan(Jac))
                 {
@@ -315,14 +323,13 @@ void VEGAS_Integrator::Integration(double eps_rel, double eps_abs)
 }
 
 
-void VEGAS_Integrator::DIntegration(double eps_rel, double eps_abs, BIN &bin)
+void VEGAS_Integrator::Integration(double eps_rel, double eps_abs, vector<BIN> &vbin)
 {
     // We try to reach either relative error (eps_rel) or absolute error (eps_abs)
     // But we also need to make sure chi2 is not bigger than the iteration numbers
     vector<double> yrnd(N_DIM);
     vector<double> y(N_DIM); // Random number between 0 to 1;
     vector<double> x(N_DIM); // The argument for integrand;
-    VEGAS_INTEGRAND_RETURN_TYPE func_return;
     double f_eval; // evaluated integrand value;
     double Jac; // The Jacobian from y to x;
     int NEVAL_START = 50000;
@@ -338,7 +345,8 @@ void VEGAS_Integrator::DIntegration(double eps_rel, double eps_abs, BIN &bin)
     double Ih;
     double Sig2;
     double acc;
-    vector<BIN> vbin;
+    vector<double> BinVars(vbin.size(), 0.0);
+    vector<BIN> vbin_tmp = vbin;
     if (verb >= INFO)
     {
         cout<<"======================================================================="<<endl;
@@ -346,13 +354,18 @@ void VEGAS_Integrator::DIntegration(double eps_rel, double eps_abs, BIN &bin)
         cout<<"======================================================================="<<endl;
         cout<<"|  Iter  |    N_Eval    |     Result     |      Error     |    Acc    |"<<endl;
     }
+    for(int ib = 0; ib < vbin.size(); ib++){
+        (vbin[ib]).reset_heights();
+    }
     while (true)
     {
         iter++;
         strat.Set_NEVAL(NEVAL_START);
         Results.push_back(0);
         Sigma2.push_back(0);
-        vbin.push_back(bin);
+        for(int ib = 0; ib < vbin_tmp.size(); ib++){
+            (vbin_tmp[ib]).reset_heights();
+        }
         NEVAL_REAL = 0;
         for (int inc = 0; inc < strat.Get_NHYPERCUBICS(); inc++)
         {
@@ -368,8 +381,7 @@ void VEGAS_Integrator::DIntegration(double eps_rel, double eps_abs, BIN &bin)
                 }
                 y = strat.Get_Y(inc,yrnd);
                 x = map.Get_X(y);
-                func_return = func(x,userdata);
-                f_eval = func_return.real();
+                f_eval = dfunc(x, &BinVars);
                 Jac = map.Get_Jac(y);
                 if (isnan(f_eval) || isnan(Jac))
                 {
@@ -379,12 +391,17 @@ void VEGAS_Integrator::DIntegration(double eps_rel, double eps_abs, BIN &bin)
                 strat.Accumulate_Weight(inc,f_eval*Jac);
                 Jf += f_eval*Jac;
                 Jf2 += pow(f_eval*Jac,2);
-                (vbin[vbin.size()-1]).Swallow(func_return.imag(),f_eval*Jac/neval*dV);
+                for(int ib = 0; ib < vbin_tmp.size(); ib++){
+                    (vbin_tmp[ib]).Swallow(BinVars[ib], f_eval*Jac/neval*dV);
+                }
             }
             Ih = Jf/neval*dV;
             Sig2 = Jf2/neval*dV*dV - pow(Jf/neval*dV,2);
             Results[Results.size()-1] += Ih;
             Sigma2[Sigma2.size()-1] += Sig2/neval;
+        }
+        for(int ib = 0; ib < vbin.size(); ib++){
+            vbin[ib] += vbin_tmp[ib]/Sigma2[Sigma2.size()-1];
         }
         strat.Update_DH();
         acc = sqrt(Sigma2[Sigma2.size()-1])/Results[Results.size()-1];
@@ -412,7 +429,9 @@ void VEGAS_Integrator::DIntegration(double eps_rel, double eps_abs, BIN &bin)
                 NEVAL_START = NEVAL_START * sqrt(acc/eps_rel);
                 Results.clear();
                 Sigma2.clear();
-                vbin.clear();
+                for(int ib = 0; ib < vbin.size(); ib++){
+                    (vbin[ib]).reset_heights();
+                }
                 continue;
             }
             if (Chi2/5.0 > 1.0)
@@ -420,26 +439,31 @@ void VEGAS_Integrator::DIntegration(double eps_rel, double eps_abs, BIN &bin)
                 NEVAL_START += 5000;
                 Results.clear();
                 Sigma2.clear();
-                vbin.clear();
+                for(int ib = 0; ib < vbin.size(); ib++){
+                    (vbin[ib]).reset_heights();
+                }
                 continue;
             }
         }
     }
-    Res = Get_Result();
-    Err = Get_Error();
-    Chi2 = Get_Chisq();
-    acc = Err/Res;
-    for (int i = 0; i < vbin.size(); i++)
-    {
-        bin += vbin[i]/Sigma2[i];
+    for(int ib = 0; ib < vbin.size(); ib++){
+        vbin[ib] *= pow(Get_Error(), 2);
     }
-    bin *= pow(Err, 2);
     if (verb >= INFO)
     {
+        Res = Get_Result();
+        Err = Get_Error();
+        Chi2 = Get_Chisq();
+        acc = Err/Res;
         cout<<"======================================================================="<<endl;
         cout<<"Summary: "<<endl;
         cout<<"Result: "<<setw(12)<<scientific<<setprecision(5)<<Res<<"  Error: "<<setw(12)<<scientific<<setprecision(5)<<Err<<"  Acc: "<<resetiosflags(ios::scientific)<<fixed<<setw(6)<<setprecision(3)<<acc*100<<"%  Chi2: "<<Chi2<<endl;
-        cout <<"Integration over bin: "<<setw(12)<<scientific<<setprecision(5)<<bin.integrate()<<"  Ratio(bin.integrate()/Res):"<<setw(12)<<scientific<<setprecision(5)<<bin.integrate()/Res<<endl;
+        cout<<"======================================================================="<<endl;
+        cout<<"Summary of Bin: "<<endl;
+        for(int ib = 0; ib < vbin.size(); ib++){
+            cout << "vbin["<< to_string(ib)<<"].integrate(): "<<setw(12)<<scientific<<setprecision(5)<<(vbin[ib]).integrate();
+            cout <<setw(12)<<"vbin["<< to_string(ib)<<"].integrate()/Res: "<<setw(12)<<scientific<<setprecision(5)<<(vbin[ib]).integrate()/Res<<endl;
+        }
         cout<<"======================================================================="<<endl;
         cout<<resetiosflags(ios::fixed)<<setprecision(8);
     }

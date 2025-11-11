@@ -5,13 +5,12 @@
 #include "VEGAS_Stratify.h"
 #include <random> // The random number generator and distributions. c++11
 #include <vector>
-#include <complex>
 #include <string>
 using std::string;
 #include "Bin.h"
 
-typedef std::complex<double> VEGAS_INTEGRAND_RETURN_TYPE;
-typedef VEGAS_INTEGRAND_RETURN_TYPE (*INTEGRAND)(std::vector<double> x, void *param);
+typedef double (*INTEGRAND)(std::vector<double> x);
+typedef double (*DINTEGRAND)(std::vector<double> x, vector<double> *pvd);
 using URD=std::uniform_real_distribution<double>;
 
 enum VEGAS_INTEGRATOR_VERBOSE
@@ -27,20 +26,17 @@ class VEGAS_Integrator
     friend void VEGAS(INTEGRAND integrand, int DIM, double &RES, double &ERR, double &CHISQ);
     friend void VEGAS(INTEGRAND integrand, int DIM, double &RES, double &ERR, double &CHISQ, double EPS_REL);
     friend void VEGAS(INTEGRAND integrand, int DIM, double &RES, double &ERR, double &CHISQ, double EPS_REL, double EPS_ABS);
-    friend void VEGAS(INTEGRAND integrand, int DIM, double &RES, double &ERR, double &CHISQ, double EPS_REL, double EPS_ABS, VEGAS_INTEGRATOR_VERBOSE level);
-    friend void VEGAS(INTEGRAND integrand, int DIM, double &RES, double &ERR, double &CHISQ, double EPS_REL, double EPS_ABS, VEGAS_INTEGRATOR_VERBOSE level, void *param);
-    friend void DVEGAS(INTEGRAND integrand, int DIM, double &RES, double &ERR, double &CHISQ, double EPS_REL, double EPS_ABS, BIN bin);
-    friend void DVEGAS(INTEGRAND integrand, int DIM, double &RES, double &ERR, double &CHISQ, double EPS_REL, double EPS_ABS, BIN bin, string &filename);
-    friend void DVEGAS(INTEGRAND integrand, int DIM, double &RES, double &ERR, double &CHISQ, double EPS_REL, double EPS_ABS, BIN bin, string &filename, VEGAS_INTEGRATOR_VERBOSE level);
-    friend void DVEGAS(INTEGRAND integrand, int DIM, double &RES, double &ERR, double &CHISQ, double EPS_REL, double EPS_ABS, BIN bin, string &filename, VEGAS_INTEGRATOR_VERBOSE level, void *param);
+    friend void DVEGAS(INTEGRAND integrand, DINTEGRAND dintegrand, int DIM, double &RES, double &ERR, double &CHISQ, vector<BIN> &vbin);
+    friend void DVEGAS(INTEGRAND integrand, DINTEGRAND dintegrand, int DIM, double &RES, double &ERR, double &CHISQ, vector<BIN> &vbin, double EPS_REL);
+    friend void DVEGAS(INTEGRAND integrand, DINTEGRAND dintegrand, int DIM, double &RES, double &ERR, double &CHISQ, vector<BIN> &vbin, double EPS_REL, double EPS_ABS);
 
 
 private:
     VEGAS_INTEGRATOR_VERBOSE verb;
 
     INTEGRAND func;
+    DINTEGRAND dfunc;
     int N_DIM;
-    void* userdata;
 
     VEGAS_Map map;
     VEGAS_Stratify strat;
@@ -58,11 +54,12 @@ private:
 
     void Set_Verbose(VEGAS_INTEGRATOR_VERBOSE level);
 
-    void Set_Integrand(INTEGRAND integrand, int dim, void* param);
+    void Set_Integrand(INTEGRAND integrand, int dim);
+    void Set_Integrand(INTEGRAND integrand, DINTEGRAND dintegrand, int dim);
     void Set_Bin_Param();
     void Improve_Grid(double eps_rel);
     void Integration(double eps_rel, double eps_abs);
-    void DIntegration(double eps_rel, double eps_abs, BIN &bin);
+    void Integration(double eps_rel, double eps_abs, vector<BIN> &vbin);
     
     
     double Get_Result();
@@ -70,21 +67,6 @@ private:
     double Get_Chisq();
 
 };
-
-
-void VEGAS(INTEGRAND integrand, int DIM, double &RES, double &ERR, double &CHISQ);
-
-
-void VEGAS(INTEGRAND integrand, int DIM, double &RES, double &ERR, double &CHISQ, double EPS_REL);
-
-
-void VEGAS(INTEGRAND integrand, int DIM, double &RES, double &ERR, double &CHISQ, double EPS_REL, double EPS_ABS);
-
-
-void VEGAS(INTEGRAND integrand, int DIM, double &RES, double &ERR, double &CHISQ, double EPS_REL, double EPS_ABS, VEGAS_INTEGRATOR_VERBOSE level);
-
-
-void VEGAS(INTEGRAND integrand, int DIM, double &RES, double &ERR, double &CHISQ, double EPS_REL, double EPS_ABS, VEGAS_INTEGRATOR_VERBOSE level, void *param);
 
 
 #endif //VEGAS_INTEGRATOR_H

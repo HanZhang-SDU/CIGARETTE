@@ -38,6 +38,9 @@ BIN operator+(BIN bin1, const BIN &bin2);
 BIN operator*(BIN bin1, const double fac);
 
 
+BIN operator*(const double fac, BIN bin1);
+
+
 BIN operator/(BIN bin1, const double fac);
 
 
