@@ -303,7 +303,8 @@ void VEGAS_Integrator::Integration(double eps_rel, double eps_abs)
             }
             if (Chi2/5.0 > 1.0)
             {
-                NEVAL_START += 5000;
+                //NEVAL_START += 5000;
+                NEVAL_START *= 2;
                 Results.clear();
                 Sigma2.clear();
                 continue;
@@ -439,7 +440,8 @@ void VEGAS_Integrator::Integration(double eps_rel, double eps_abs, vector<BIN> &
             }
             if (Chi2/5.0 > 1.0)
             {
-                NEVAL_START += 5000;
+                //NEVAL_START += 5000;
+                NEVAL_START *= 2;
                 Results.clear();
                 Sigma2.clear();
                 for(int ib = 0; ib < vbin.size(); ib++){
