@@ -8,9 +8,14 @@
 #include <string>
 using std::string;
 #include "Bin.h"
+#include "cmath"
+using std::sqrt;
+using std::log;
+using std::exp;
+
 
 typedef double (*INTEGRAND)(std::vector<double> x);
-typedef double (*DINTEGRAND)(std::vector<double> x, vector<double> *pvd);
+typedef double (*BININTEGRAND)(std::vector<double> x, vector<double> *pvd);
 using URD=std::uniform_real_distribution<double>;
 
 enum VEGAS_INTEGRATOR_VERBOSE
@@ -23,19 +28,15 @@ enum VEGAS_INTEGRATOR_VERBOSE
 
 class VEGAS_Integrator
 {
-    friend void VEGAS(INTEGRAND integrand, int DIM, double &RES, double &ERR, double &CHISQ);
-    friend void VEGAS(INTEGRAND integrand, int DIM, double &RES, double &ERR, double &CHISQ, double EPS_REL);
     friend void VEGAS(INTEGRAND integrand, int DIM, double &RES, double &ERR, double &CHISQ, double EPS_REL, double EPS_ABS);
-    friend void DVEGAS(INTEGRAND integrand, DINTEGRAND dintegrand, int DIM, double &RES, double &ERR, double &CHISQ, vector<BIN> &vbin);
-    friend void DVEGAS(INTEGRAND integrand, DINTEGRAND dintegrand, int DIM, double &RES, double &ERR, double &CHISQ, vector<BIN> &vbin, double EPS_REL);
-    friend void DVEGAS(INTEGRAND integrand, DINTEGRAND dintegrand, int DIM, double &RES, double &ERR, double &CHISQ, vector<BIN> &vbin, double EPS_REL, double EPS_ABS);
+    friend void VEGAS(BININTEGRAND bintegrand, int DIM, double &RES, double &ERR, double &CHISQ, vector<BIN> &vbin, double EPS_REL, double EPS_ABS);
 
 
 private:
     VEGAS_INTEGRATOR_VERBOSE verb;
 
     INTEGRAND func;
-    DINTEGRAND dfunc;
+    BININTEGRAND bfunc;
     int N_DIM;
 
     VEGAS_Map map;
@@ -55,9 +56,10 @@ private:
     void Set_Verbose(VEGAS_INTEGRATOR_VERBOSE level);
 
     void Set_Integrand(INTEGRAND integrand, int dim);
-    void Set_Integrand(INTEGRAND integrand, DINTEGRAND dintegrand, int dim);
+    void Set_Integrand(BININTEGRAND bintegrand, int dim);
     void Set_Bin_Param();
     void Improve_Grid(double eps_rel);
+    void Improve_Grid(double eps_rel, vector<BIN> &vbin);
     void Integration(double eps_rel, double eps_abs);
     void Integration(double eps_rel, double eps_abs, vector<BIN> &vbin);
     

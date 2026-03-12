@@ -18,6 +18,7 @@ private:
     int N_EVALUATES_EXPECTED;
     int N_HYPERCUBICS;
     int N_HYPERCUBICS_MAX;
+    int N_EVALUATES_START;
 
     void Reset_Storage();
     std::vector<int> Get_Indices(int index);
@@ -29,12 +30,14 @@ public:
     // void Set_Stratification_System(int N_DIM, int NEVAL_TRAIN);
     void Set_Dimension(int N_DIM);
     void Set_NEVAL(int NEVAL_EXP);
+    void Set_NEVALUATES_START(int NEVAL_START);
     void Accumulate_Weight(int index, double weight);
     void Update_DH();
     std::vector<double> Get_Y(int index, std::vector<double> random_uni);
     int Get_NHYPERCUBICS(){return N_HYPERCUBICS;};
     int Get_NH(int index); // Get the expected number of events in each hypercubic.
     double Get_V_Cubic(){return V_cubic;}
+    int Get_NEVALUATES_START();
 };
 
 

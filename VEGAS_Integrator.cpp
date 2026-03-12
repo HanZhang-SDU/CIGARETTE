@@ -14,7 +14,7 @@ void VEGAS_Integrator::Set_Verbose(VEGAS_INTEGRATOR_VERBOSE level)
 void VEGAS_Integrator::Set_Integrand(INTEGRAND integrand, int dim)
 {
     func = integrand;
-    dfunc = nullptr;
+    bfunc = nullptr;
     N_DIM = dim;
     Results.clear();
     Sigma2.clear();
@@ -24,10 +24,10 @@ void VEGAS_Integrator::Set_Integrand(INTEGRAND integrand, int dim)
 }
 
 
-void VEGAS_Integrator::Set_Integrand(INTEGRAND integrand, DINTEGRAND dintegrand, int dim)
+void VEGAS_Integrator::Set_Integrand(BININTEGRAND bintegrand, int dim)
 {
-    func = integrand;
-    dfunc = dintegrand;
+    func = nullptr;
+    bfunc = bintegrand;
     N_DIM = dim;
     Results.clear();
     Sigma2.clear();
@@ -58,6 +58,7 @@ void VEGAS_Integrator::Improve_Grid(double eps_rel)
     double Ih;
     double Sig2;
     double acc;
+    double E = exp(1.0);
     strat.Set_Dimension(N_DIM);
     dV = strat.Get_V_Cubic();
     map.Set_alpha(alpha_start);
@@ -191,10 +192,11 @@ void VEGAS_Integrator::Improve_Grid(double eps_rel)
             }
             if (acc < eps_rel)
             {
+                strat.Set_NEVALUATES_START(2*NEVAL_START);
                 break;
             }
-            //NEVAL_START = NEVAL_START * sqrt(acc/eps_rel);
-            NEVAL_START = NEVAL_START * pow(acc/eps_rel, 2);
+            //NEVAL_START = NEVAL_START * (1.0 + log(acc/eps_rel))*pow(acc/eps_rel, 2);
+            NEVAL_START = NEVAL_START*((1 - pow(E,1 - acc/eps_rel))*acc/eps_rel + pow(E,1 - acc/eps_rel)*pow(acc/eps_rel,2));
             Results.clear();
             Sigma2.clear();
         }
@@ -215,7 +217,7 @@ void VEGAS_Integrator::Integration(double eps_rel, double eps_abs)
     vector<double> x(N_DIM); // The argument for integrand;
     double f_eval; // evaluated integrand value;
     double Jac; // The Jacobian from y to x;
-    int NEVAL_START = 50000;
+    int NEVAL_START = strat.Get_NEVALUATES_START();
     double dV = strat.Get_V_Cubic();
     int iter = 0;
     double Res;
@@ -228,6 +230,7 @@ void VEGAS_Integrator::Integration(double eps_rel, double eps_abs)
     double Ih;
     double Sig2;
     double acc;
+    double E = exp(1.0);
     if (verb >= INFO)
     {
         cout<<"======================================================================="<<endl;
@@ -295,8 +298,8 @@ void VEGAS_Integrator::Integration(double eps_rel, double eps_abs)
             }
             if (Chi2/5.0 < 1.0)
             {
-                //NEVAL_START = NEVAL_START * sqrt(acc/eps_rel);
-                NEVAL_START = NEVAL_START * pow(acc/eps_rel, 2);
+                //NEVAL_START = NEVAL_START * (1.0 + log(acc/eps_rel))*pow(acc/eps_rel, 2);
+                NEVAL_START = NEVAL_START*((1 - pow(E,1 - acc/eps_rel))*acc/eps_rel + pow(E,1 - acc/eps_rel)*pow(acc/eps_rel,2));
                 Results.clear();
                 Sigma2.clear();
                 continue;
@@ -326,6 +329,178 @@ void VEGAS_Integrator::Integration(double eps_rel, double eps_abs)
 }
 
 
+void VEGAS_Integrator::Improve_Grid(double eps_rel, vector<BIN> &vbin)
+{
+    vector<double> yrnd(N_DIM);
+    vector<double> y(N_DIM); // Random number between 0 to 1;
+    vector<double> x(N_DIM); // The argument for integrand;
+    double f_eval; // evaluated integrand value;
+    double Jac; 
+    int iter = 0;
+    int NEVAL_START = 10000;
+    double alpha_start = 0.5;
+    double alpha = alpha_start;
+    double dV;
+    double Res;
+    double Err;
+    int neval;
+    int NEVAL_REAL;
+    double Jf;
+    double Jf2;
+    double Ih;
+    double Sig2;
+    double acc;
+    vector<double> BinVars(vbin.size(), 0.0);
+    double E = exp(1.0);
+    strat.Set_Dimension(N_DIM);
+    dV = strat.Get_V_Cubic();
+    map.Set_alpha(alpha_start);
+    // Warm Up with just MAP improvement
+    if (verb >= INFO)
+    {
+        cout<<"======================================================================================"<<endl;
+        cout<<"| Warm Up the VEGAS Map                                                              |"<<endl;
+        cout<<"======================================================================================"<<endl;
+        cout<<"|  Iter  |    N_Eval    |     Result     |      Error     |    Acc    |  Map Changes |"<<endl;
+    }
+    for (int warm_iter = 0; warm_iter < 5; warm_iter++)
+    {
+        Results.push_back(0);
+        Sigma2.push_back(0);
+        Jf = 0;
+        Jf2 = 0;
+        for (int ne = 0; ne < NEVAL_START; ne++)
+        {
+            for (int i_dim = 0; i_dim < N_DIM; i_dim++)
+            {
+                yrnd[i_dim] = dist(rng);
+            }
+            x = map.Get_X(yrnd);
+            f_eval = bfunc(x, &BinVars);
+            Jac = map.Get_Jac(yrnd);
+            if (isnan(f_eval) || isnan(Jac))
+            {
+                ne--;
+                continue;
+            }
+            map.Accumulate_Weight(yrnd,f_eval);
+            Jf += f_eval*Jac;
+            Jf2 += pow(f_eval*Jac,2);
+        }
+        Ih = Jf/NEVAL_START;
+        Sig2 = Jf2/NEVAL_START - pow(Jf/NEVAL_START,2);
+        Results[Results.size()-1] += Ih;
+        Sigma2[Sigma2.size()-1] += Sig2/NEVAL_START;
+        map.Update_Map();
+        acc = sqrt(Sigma2[Sigma2.size()-1])/Results[Results.size()-1];
+        if (verb >= INFO)
+        {
+            cout<<"| "<<setw(6)<<warm_iter<<" | "<<setw(12)<<NEVAL_START<<" | "<<setw(14)<<scientific<<setprecision(5)<<Results[Results.size()-1]<<" | "<<setw(14)<<scientific<<setprecision(5)<<sqrt(Sigma2[Sigma2.size()-1])<<" | "<<resetiosflags(ios::scientific)<<fixed<<setw(8)<<setprecision(3)<<acc*100<<"% | "<<resetiosflags(ios::fixed)<<setw(12)<<scientific<<setprecision(5)<<map.Checking_Map()<<" |"<<endl;
+        } 
+    }
+    Res = Get_Result();
+    Err = Get_Error();
+    acc = Err/Res;
+    if (verb >= INFO)
+    {
+        cout<<"| Summary of Warm up 5 Iter:   Res = "<<setw(11)<<scientific<<setprecision(5)<< Res <<"   Err = "<<setw(11)<<scientific<<setprecision(5)<< Err <<"   Acc = "<<resetiosflags(ios::scientific)<<fixed<<setw(6)<<setprecision(3)<<acc*100<<"% |"<<endl;
+    }
+    Results.clear();
+    Sigma2.clear();
+
+    if (verb >= INFO)
+    {
+        cout<<"======================================================================================"<<endl;
+        cout<<"| Improving the mapping grid and stratification grid                                 |"<<endl;
+        cout<<"======================================================================================"<<endl;
+        cout<<"|  Iter  |    N_Eval    |     Result     |      Error     |    Acc    |  Map Changes |"<<endl;
+    }
+    while (true)
+    {
+        // we decide to end the improvement of grid and strata when the accuracy is about 1%
+        // Every 5 iteration, we can check the accuracy, and addjust the number of evaluation
+        // Map and Strata improves every another iteration.
+        iter++;
+        strat.Set_NEVAL(NEVAL_START);
+        Results.push_back(0);
+        Sigma2.push_back(0);
+        NEVAL_REAL = 0;
+        for (int inc = 0; inc < strat.Get_NHYPERCUBICS(); inc++)
+        {
+            Jf = 0;
+            Jf2 = 0;
+            neval = strat.Get_NH(inc);
+            NEVAL_REAL += neval;
+            for (int ne = 0; ne < neval; ne++)
+            {
+                for (int i_dim = 0; i_dim < N_DIM; i_dim++)
+                {
+                    yrnd[i_dim] = dist(rng);
+                }
+                y = strat.Get_Y(inc,yrnd);
+                x = map.Get_X(y);
+                f_eval = bfunc(x, &BinVars);
+                Jac = map.Get_Jac(y);
+                if (isnan(f_eval) || isnan(Jac))
+                {
+                    ne--;
+                    continue;
+                }
+                map.Accumulate_Weight(y,f_eval);
+                strat.Accumulate_Weight(inc,f_eval*Jac);
+                Jf += f_eval*Jac;
+                Jf2 += pow(f_eval*Jac,2);
+            }
+            Ih = Jf/neval*dV;
+            Sig2 = Jf2/neval*dV*dV - pow(Jf/neval*dV,2);
+            Results[Results.size()-1] += Ih;
+            Sigma2[Sigma2.size()-1] += Sig2/neval;
+        }
+        if (iter % 2 != 0)
+        {
+            // if (alpha > 0.05)
+            // {
+                map.Update_Map();
+                // alpha = alpha_start*exp(-iter/5.0);
+                // map.Set_alpha(alpha);
+            // }
+        }
+        else
+        {
+            strat.Update_DH();
+        }
+        acc = sqrt(Sigma2[Sigma2.size()-1])/Results[Results.size()-1];
+        if (verb >= INFO)
+        {
+            cout<<"| "<<setw(6)<<iter<<" | "<<setw(12)<<NEVAL_REAL<<" | "<<setw(14)<<scientific<<setprecision(5)<<Results[Results.size()-1]<<" | "<<setw(14)<<scientific<<setprecision(5)<<sqrt(Sigma2[Sigma2.size()-1])<<" | "<<resetiosflags(ios::scientific)<<fixed<<setw(8)<<setprecision(3)<<acc*100<<"% | "<<resetiosflags(ios::fixed)<<setw(12)<<scientific<<setprecision(5)<<map.Checking_Map()<<" |"<<endl;
+        } 
+        if (iter % 5 == 0)
+        {
+            Res = Get_Result();
+            Err = Get_Error();
+            acc = Err/Res;
+            if (verb >= INFO)
+            {
+                cout<<"| Summary of Last 5 Iter:      Res = "<<setw(11)<<scientific<<setprecision(5)<< Res <<"   Err = "<<setw(11)<<scientific<<setprecision(5)<< Err <<"   Acc = "<<resetiosflags(ios::scientific)<<fixed<<setw(6)<<setprecision(3)<<acc*100<<"% |"<<endl;
+            }
+            if (acc < eps_rel)
+            {
+                strat.Set_NEVALUATES_START(2*NEVAL_START);
+                break;
+            }
+            //NEVAL_START = NEVAL_START * (1.0 + log(acc/eps_rel))*pow(acc/eps_rel, 2);
+            NEVAL_START = NEVAL_START*((1 - pow(E,1 - acc/eps_rel))*acc/eps_rel + pow(E,1 - acc/eps_rel)*pow(acc/eps_rel,2));
+            Results.clear();
+            Sigma2.clear();
+        }
+    }
+    if (verb >= INFO)
+    {
+        cout<<"======================================================================================"<<endl;
+    }
+}
+
+
 void VEGAS_Integrator::Integration(double eps_rel, double eps_abs, vector<BIN> &vbin)
 {
     // We try to reach either relative error (eps_rel) or absolute error (eps_abs)
@@ -335,7 +510,7 @@ void VEGAS_Integrator::Integration(double eps_rel, double eps_abs, vector<BIN> &
     vector<double> x(N_DIM); // The argument for integrand;
     double f_eval; // evaluated integrand value;
     double Jac; // The Jacobian from y to x;
-    int NEVAL_START = 50000;
+    int NEVAL_START = strat.Get_NEVALUATES_START();
     double dV = strat.Get_V_Cubic();
     int iter = 0;
     double Res;
@@ -350,6 +525,7 @@ void VEGAS_Integrator::Integration(double eps_rel, double eps_abs, vector<BIN> &
     double acc;
     vector<double> BinVars(vbin.size(), 0.0);
     vector<BIN> vbin_tmp = vbin;
+    double E = exp(1.0);
     if (verb >= INFO)
     {
         cout<<"======================================================================="<<endl;
@@ -384,7 +560,7 @@ void VEGAS_Integrator::Integration(double eps_rel, double eps_abs, vector<BIN> &
                 }
                 y = strat.Get_Y(inc,yrnd);
                 x = map.Get_X(y);
-                f_eval = dfunc(x, &BinVars);
+                f_eval = bfunc(x, &BinVars);
                 Jac = map.Get_Jac(y);
                 if (isnan(f_eval) || isnan(Jac))
                 {
@@ -429,8 +605,8 @@ void VEGAS_Integrator::Integration(double eps_rel, double eps_abs, vector<BIN> &
             }
             if (Chi2/5.0 < 1.0)
             {
-                //NEVAL_START = NEVAL_START * sqrt(acc/eps_rel);
-                NEVAL_START = NEVAL_START * pow(acc/eps_rel, 2);
+                //NEVAL_START = NEVAL_START * (1.0 + log(acc/eps_rel))*pow(acc/eps_rel, 2);
+                NEVAL_START = NEVAL_START*((1 - pow(E,1 - acc/eps_rel))*acc/eps_rel + pow(E,1 - acc/eps_rel)*pow(acc/eps_rel,2));
                 Results.clear();
                 Sigma2.clear();
                 for(int ib = 0; ib < vbin.size(); ib++){

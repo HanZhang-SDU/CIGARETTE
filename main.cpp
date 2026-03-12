@@ -11,6 +11,7 @@ using std::endl;
 using std::ofstream;
 #include <string>
 using std::string;
+using std::to_string;
 #include "VEGAS.h"
 #include "Bin.h"
 
@@ -28,7 +29,7 @@ double In(vector<double> x){
 }
 
 
-double DIn(vector<double> x, vector<double> *pvd){
+double BIn(vector<double> x, vector<double> *pvd){
     double a = 0.1;
     double Pi = acos(-1.0);
     int n = x.size();
@@ -61,7 +62,7 @@ int main(){
 
     //If you want to collect one bin data, then
     BIN xbin(0.0, 1.0, 51);
-    DVEGAS(In, DIn, DIM, RES, ERR, CHISQ, xbin, EPS_REL, EPS_ABS);
+    VEGAS(BIn, DIM, RES, ERR, CHISQ, xbin, EPS_REL, EPS_ABS);
     cout << "res = " << RES << ", err = " << ERR << ", chisq = " << CHISQ << endl;
     cout << "xbin.integrate() = " << (xbin).integrate() << ", " << "xbin.integrate()/res = " << xbin.integrate()/RES << endl;
     fs.open(filename, fs.out);
@@ -70,15 +71,17 @@ int main(){
 
 
 
-//    //If you just want to collect bin data while doing the integral, then
+//    //If you want to collect multiple bin data simultaneously, then
 //    vector<BIN> vbin{BIN(0.0, 1.0, 51), BIN(0.0, 1.0, 81)};
-//    DVEGAS(In, DIn, DIM, RES, ERR, CHISQ, vbin, EPS_REL);
+//    VEGAS(BIn, DIM, RES, ERR, CHISQ, vbin, EPS_REL, EPS_ABS);
 //    cout << "res = " << RES << ", err = " << ERR << ", chisq = " << CHISQ << endl;
 //    cout << "vbin[0].integrate() = " << (vbin[0]).integrate() << ", " << "vbin[0].integrate()/res = " << (vbin[0]).integrate()/RES << endl;
 //    cout << "vbin[1].integrate() = " << (vbin[1]).integrate() << ", " << "vbin[1].integrate()/res = " << (vbin[1]).integrate()/RES << endl;
-//    fs.open(filename, fs.out);
-//    fs << vbin[0] << '\n';
-//    fs.close();
+//    for(int i = 0; i < vbin.size(); i++){
+//        fs.open("data"+to_string(i)+".txt", fs.out);
+//        fs << vbin[i] << '\n';
+//        fs.close();
+//    }
 
 
     return 0;

@@ -13,6 +13,9 @@ void VEGAS_Stratify::Set_NEVAL(int NEVAL_EXP)
 {
     N_EVALUATES_EXPECTED = NEVAL_EXP;
 }
+void VEGAS_Stratify::Set_NEVALUATES_START(int NEVAL_START){
+    N_EVALUATES_START = NEVAL_START;
+}
 // void VEGAS_Stratify::Set_Stratification_System(int ndim, int NEVAL_TRAIN)
 // {
 //     N_DIM = ndim;
@@ -89,4 +92,10 @@ int VEGAS_Stratify::Get_NH(int index)
 {
     int nh = dh[index]*N_EVALUATES_EXPECTED;
     return nh<2?2:nh;
+}
+
+
+int VEGAS_Stratify::Get_NEVALUATES_START()
+{
+    return N_EVALUATES_START;
 }
