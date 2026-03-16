@@ -100,6 +100,7 @@ void VEGAS_Integrator::Improve_Grid(double eps_rel)
         Sigma2[Sigma2.size()-1] += Sig2/NEVAL_START;
         map.Update_Map();
         acc = sqrt(Sigma2[Sigma2.size()-1])/Results[Results.size()-1];
+        acc = abs(acc);
         if (verb >= INFO)
         {
             cout<<"| "<<setw(6)<<warm_iter<<" | "<<setw(12)<<NEVAL_START<<" | "<<setw(14)<<scientific<<setprecision(5)<<Results[Results.size()-1]<<" | "<<setw(14)<<scientific<<setprecision(5)<<sqrt(Sigma2[Sigma2.size()-1])<<" | "<<resetiosflags(ios::scientific)<<fixed<<setw(8)<<setprecision(3)<<acc*100<<"% | "<<resetiosflags(ios::fixed)<<setw(12)<<scientific<<setprecision(5)<<map.Checking_Map()<<" |"<<endl;
@@ -108,6 +109,7 @@ void VEGAS_Integrator::Improve_Grid(double eps_rel)
     Res = Get_Result();
     Err = Get_Error();
     acc = Err/Res;
+    acc = abs(acc);
     if (verb >= INFO)
     {
         cout<<"| Summary of Warm up 5 Iter:   Res = "<<setw(11)<<scientific<<setprecision(5)<< Res <<"   Err = "<<setw(11)<<scientific<<setprecision(5)<< Err <<"   Acc = "<<resetiosflags(ios::scientific)<<fixed<<setw(6)<<setprecision(3)<<acc*100<<"% |"<<endl;
@@ -177,6 +179,7 @@ void VEGAS_Integrator::Improve_Grid(double eps_rel)
             strat.Update_DH();
         }
         acc = sqrt(Sigma2[Sigma2.size()-1])/Results[Results.size()-1];
+        acc = abs(acc);
         if (verb >= INFO)
         {
             cout<<"| "<<setw(6)<<iter<<" | "<<setw(12)<<NEVAL_REAL<<" | "<<setw(14)<<scientific<<setprecision(5)<<Results[Results.size()-1]<<" | "<<setw(14)<<scientific<<setprecision(5)<<sqrt(Sigma2[Sigma2.size()-1])<<" | "<<resetiosflags(ios::scientific)<<fixed<<setw(8)<<setprecision(3)<<acc*100<<"% | "<<resetiosflags(ios::fixed)<<setw(12)<<scientific<<setprecision(5)<<map.Checking_Map()<<" |"<<endl;
@@ -186,6 +189,7 @@ void VEGAS_Integrator::Improve_Grid(double eps_rel)
             Res = Get_Result();
             Err = Get_Error();
             acc = Err/Res;
+            acc = abs(acc);
             if (verb >= INFO)
             {
                 cout<<"| Summary of Last 5 Iter:      Res = "<<setw(11)<<scientific<<setprecision(5)<< Res <<"   Err = "<<setw(11)<<scientific<<setprecision(5)<< Err <<"   Acc = "<<resetiosflags(ios::scientific)<<fixed<<setw(6)<<setprecision(3)<<acc*100<<"% |"<<endl;
@@ -277,6 +281,7 @@ void VEGAS_Integrator::Integration(double eps_rel, double eps_abs)
         }
         strat.Update_DH();
         acc = sqrt(Sigma2[Sigma2.size()-1])/Results[Results.size()-1];
+        acc = abs(acc);
         if (verb >= INFO)
         {
             cout<<"| "<<setw(6)<<iter<<" | "<<setw(12)<<NEVAL_REAL<<" | "<<setw(14)<<scientific<<setprecision(5)<<Results[Results.size()-1]<<" | "<<setw(14)<<scientific<<setprecision(5)<<sqrt(Sigma2[Sigma2.size()-1])<<" | "<<resetiosflags(ios::scientific)<<fixed<<setw(8)<<setprecision(3)<<acc*100<<"% |"<<endl;
@@ -288,6 +293,7 @@ void VEGAS_Integrator::Integration(double eps_rel, double eps_abs)
             Err = Get_Error();
             Chi2 = Get_Chisq();
             acc = Err/Res;
+            acc = abs(acc);
             if (verb >= INFO)
             {
                 cout<<"| Summary of Last 5 Iter: "<<setw(14)<<scientific<<setprecision(5)<< Res <<" | "<<setw(14)<<scientific<<setprecision(5)<< Err <<" | "<<resetiosflags(ios::scientific)<<fixed<<setw(8)<<setprecision(3)<<acc*100<<"% | Chi2 = "<<Chi2<<endl;
@@ -320,6 +326,7 @@ void VEGAS_Integrator::Integration(double eps_rel, double eps_abs)
         Err = Get_Error();
         Chi2 = Get_Chisq();
         acc = Err/Res;
+        acc = abs(acc);
         cout<<"======================================================================="<<endl;
         cout<<"Summary: "<<endl;
         cout<<"Result: "<<setw(12)<<scientific<<setprecision(5)<<Res<<"  Error: "<<setw(12)<<scientific<<setprecision(5)<<Err<<"  Acc: "<<resetiosflags(ios::scientific)<<fixed<<setw(6)<<setprecision(3)<<acc*100<<"%  Chi2: "<<Chi2<<endl;
@@ -393,6 +400,7 @@ void VEGAS_Integrator::Improve_Grid(double eps_rel, vector<BIN> &vbin)
         Sigma2[Sigma2.size()-1] += Sig2/NEVAL_START;
         map.Update_Map();
         acc = sqrt(Sigma2[Sigma2.size()-1])/Results[Results.size()-1];
+        acc = abs(acc);
         if (verb >= INFO)
         {
             cout<<"| "<<setw(6)<<warm_iter<<" | "<<setw(12)<<NEVAL_START<<" | "<<setw(14)<<scientific<<setprecision(5)<<Results[Results.size()-1]<<" | "<<setw(14)<<scientific<<setprecision(5)<<sqrt(Sigma2[Sigma2.size()-1])<<" | "<<resetiosflags(ios::scientific)<<fixed<<setw(8)<<setprecision(3)<<acc*100<<"% | "<<resetiosflags(ios::fixed)<<setw(12)<<scientific<<setprecision(5)<<map.Checking_Map()<<" |"<<endl;
@@ -401,6 +409,7 @@ void VEGAS_Integrator::Improve_Grid(double eps_rel, vector<BIN> &vbin)
     Res = Get_Result();
     Err = Get_Error();
     acc = Err/Res;
+    acc = abs(acc);
     if (verb >= INFO)
     {
         cout<<"| Summary of Warm up 5 Iter:   Res = "<<setw(11)<<scientific<<setprecision(5)<< Res <<"   Err = "<<setw(11)<<scientific<<setprecision(5)<< Err <<"   Acc = "<<resetiosflags(ios::scientific)<<fixed<<setw(6)<<setprecision(3)<<acc*100<<"% |"<<endl;
@@ -470,6 +479,7 @@ void VEGAS_Integrator::Improve_Grid(double eps_rel, vector<BIN> &vbin)
             strat.Update_DH();
         }
         acc = sqrt(Sigma2[Sigma2.size()-1])/Results[Results.size()-1];
+        acc = abs(acc);
         if (verb >= INFO)
         {
             cout<<"| "<<setw(6)<<iter<<" | "<<setw(12)<<NEVAL_REAL<<" | "<<setw(14)<<scientific<<setprecision(5)<<Results[Results.size()-1]<<" | "<<setw(14)<<scientific<<setprecision(5)<<sqrt(Sigma2[Sigma2.size()-1])<<" | "<<resetiosflags(ios::scientific)<<fixed<<setw(8)<<setprecision(3)<<acc*100<<"% | "<<resetiosflags(ios::fixed)<<setw(12)<<scientific<<setprecision(5)<<map.Checking_Map()<<" |"<<endl;
@@ -479,6 +489,7 @@ void VEGAS_Integrator::Improve_Grid(double eps_rel, vector<BIN> &vbin)
             Res = Get_Result();
             Err = Get_Error();
             acc = Err/Res;
+            acc = abs(acc);
             if (verb >= INFO)
             {
                 cout<<"| Summary of Last 5 Iter:      Res = "<<setw(11)<<scientific<<setprecision(5)<< Res <<"   Err = "<<setw(11)<<scientific<<setprecision(5)<< Err <<"   Acc = "<<resetiosflags(ios::scientific)<<fixed<<setw(6)<<setprecision(3)<<acc*100<<"% |"<<endl;
@@ -584,6 +595,7 @@ void VEGAS_Integrator::Integration(double eps_rel, double eps_abs, vector<BIN> &
         }
         strat.Update_DH();
         acc = sqrt(Sigma2[Sigma2.size()-1])/Results[Results.size()-1];
+        acc = abs(acc);
         if (verb >= INFO)
         {
             cout<<"| "<<setw(6)<<iter<<" | "<<setw(12)<<NEVAL_REAL<<" | "<<setw(14)<<scientific<<setprecision(5)<<Results[Results.size()-1]<<" | "<<setw(14)<<scientific<<setprecision(5)<<sqrt(Sigma2[Sigma2.size()-1])<<" | "<<resetiosflags(ios::scientific)<<fixed<<setw(8)<<setprecision(3)<<acc*100<<"% |"<<endl;
@@ -595,6 +607,7 @@ void VEGAS_Integrator::Integration(double eps_rel, double eps_abs, vector<BIN> &
             Err = Get_Error();
             Chi2 = Get_Chisq();
             acc = Err/Res;
+            acc = abs(acc);
             if (verb >= INFO)
             {
                 cout<<"| Summary of Last 5 Iter: "<<setw(14)<<scientific<<setprecision(5)<< Res <<" | "<<setw(14)<<scientific<<setprecision(5)<< Err <<" | "<<resetiosflags(ios::scientific)<<fixed<<setw(8)<<setprecision(3)<<acc*100<<"% | Chi2 = "<<Chi2<<endl;
@@ -636,6 +649,7 @@ void VEGAS_Integrator::Integration(double eps_rel, double eps_abs, vector<BIN> &
         Err = Get_Error();
         Chi2 = Get_Chisq();
         acc = Err/Res;
+        acc = abs(acc);
         cout<<"======================================================================="<<endl;
         cout<<"Summary: "<<endl;
         cout<<"Result: "<<setw(12)<<scientific<<setprecision(5)<<Res<<"  Error: "<<setw(12)<<scientific<<setprecision(5)<<Err<<"  Acc: "<<resetiosflags(ios::scientific)<<fixed<<setw(6)<<setprecision(3)<<acc*100<<"%  Chi2: "<<Chi2<<endl;

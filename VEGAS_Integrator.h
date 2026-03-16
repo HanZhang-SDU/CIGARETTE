@@ -12,6 +12,7 @@ using std::string;
 using std::sqrt;
 using std::log;
 using std::exp;
+using std::abs;
 
 
 typedef double (*INTEGRAND)(std::vector<double> x);
